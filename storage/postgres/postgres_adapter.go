@@ -73,7 +73,7 @@ func WithSslOn() PgOptionFunc {
 }
 
 // applyOpts iterates over the options provided, adds them to the connection variables map, and returns the connection options
-// in string format as optKey:optValue
+// in string format as optKey=optValue
 func applyOpts(connVars *pgOptions, pgOpts []PgOptionFunc) string {
 	for _, pgOpt := range pgOpts {
 		pgOpt(connVars)
