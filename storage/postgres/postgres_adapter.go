@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	_ "github.com/lib/pq"
+	_ "github.com/lib/pq" // Imported as a side-effect to register drivers with database/sql package
 
 	"BNR-Blog-Dockertest/storage"
 )
