@@ -18,10 +18,12 @@ const testUser = "postgres"
 const testHost = "localhost"
 const testDbName = "phone_numbers"
 
+// getAdapter retrieves the Postgres adapter with test credentials
 func getAdapter() (*PgAdapter, error) {
 	return NewAdapter(testHost, testPort, testUser, testDbName)
 }
 
+// initTestAdapter inserts test numbers into the database
 func initTestAdapter(adapter *PgAdapter) {
 	testNumbers := []storage.PhoneNumber{
 		{
@@ -39,6 +41,7 @@ func initTestAdapter(adapter *PgAdapter) {
 	}
 }
 
+// setup instantiates a Postgres docker container and attempts to connect to it via a new adapter
 func setup() *dockertest.Resource {
 	pool, err := dockertest.NewPool("")
 	if err != nil {
@@ -66,6 +69,7 @@ func setup() *dockertest.Resource {
 	return resource
 }
 
+// cleanup removes the docker container resource
 func cleanup(resource *dockertest.Resource) {
 	err := resource.Close()
 	if err != nil {
@@ -74,9 +78,9 @@ func cleanup(resource *dockertest.Resource) {
 }
 
 func TestMain(m *testing.M) {
-	resource := setup()
+	resource := setup() // Setup one container for test suite to limit resources created during tests
 	code := m.Run()
-	cleanup(resource)
+	cleanup(resource) // Tear down container when test suite is done running to avoid extraneous resources
 	os.Exit(code)
 }
 
