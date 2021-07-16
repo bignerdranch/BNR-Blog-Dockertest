@@ -11,13 +11,12 @@ import (
 )
 
 const (
-	sslModeKey   = "sslmode"
-	passwordKey  = "password"
-	hostKey      = "host"
-	portKey      = "port"
-	userKey      = "user"
-	dbNameKey    = "dbname"
-	tableNameKey = "tablename"
+	sslModeKey  = "sslmode"
+	passwordKey = "password"
+	hostKey     = "host"
+	portKey     = "port"
+	userKey     = "user"
+	dbNameKey   = "dbname"
 )
 
 // PgAdapter represents the postgres storage adapter
@@ -38,42 +37,53 @@ func (a PgAdapter) createTable(tableName string) error {
 	return nil
 }
 
+// pgOptions describes connection options
+type pgOptions struct {
+	passWord  string
+	tableName string
+	sslMode   string
+	host      string
+	port      string
+	userName  string
+	dbName    string
+}
+
 // PgOptionFunc describes functions which add optional connection variables to Postgres
-type PgOptionFunc func(options map[string]string)
+type PgOptionFunc func(options *pgOptions)
 
 // WithPassword is an optional function to provide a password to connect to the database with; default is empty
 func WithPassword(password string) PgOptionFunc {
-	return func(options map[string]string) {
-		options[passwordKey] = password
+	return func(options *pgOptions) {
+		options.passWord = password
 	}
 }
 
 //WithTableName is an optional function to provide a table name for phone number operations; default is using the database name
 func WithTableName(tableName string) PgOptionFunc {
-	return func(options map[string]string) {
-		options[tableNameKey] = tableName
+	return func(options *pgOptions) {
+		options.tableName = tableName
 	}
 }
 
 // WithSslOn is an optional function to make ssl enabled; default is disabled
 func WithSslOn() PgOptionFunc {
-	return func(options map[string]string) {
-		options[sslModeKey] = "enable"
+	return func(options *pgOptions) {
+		options.sslMode = "enable"
 	}
 }
 
-// applyOpts iterates over the options provided, adds them to the connection variables map, and returns the options
+// applyOpts iterates over the options provided, adds them to the connection variables map, and returns the connection options
 // in string format as optKey:optValue
-func applyOpts(connVars map[string]string, pgOpts []PgOptionFunc) string {
+func applyOpts(connVars *pgOptions, pgOpts []PgOptionFunc) string {
 	for _, pgOpt := range pgOpts {
 		pgOpt(connVars)
 	}
 
 	var sb strings.Builder
-	for key, val := range connVars {
-		if key != tableNameKey { // Table name option not a valid connection option; leave in map for later use
-			fmt.Fprintf(&sb, "%s=%s ", key, val)
-		}
+	fmt.Fprintf(&sb, "%s=%s %s=%s %s=%s %s=%s %s=%s", hostKey, connVars.host, portKey, connVars.port, dbNameKey,
+		connVars.dbName, userKey, connVars.userName, sslModeKey, connVars.sslMode) // Apply provided options
+	if connVars.passWord != "" { // Add to connection string password if provided
+		fmt.Fprintf(&sb, "%s=%s", passwordKey, connVars.passWord)
 	}
 
 	return sb.String()
@@ -81,7 +91,7 @@ func applyOpts(connVars map[string]string, pgOpts []PgOptionFunc) string {
 
 // NewAdapter instantiates a new postgres PgAdapter
 func NewAdapter(host string, port string, user string, dbName string, pgOpts ...PgOptionFunc) (*PgAdapter, error) {
-	connVars := map[string]string{hostKey: host, portKey: port, dbNameKey: dbName, userKey: user, sslModeKey: "disable"}
+	connVars := &pgOptions{host: host, port: port, dbName: dbName, userName: user, sslMode: "disable"}
 	psqlInfo := applyOpts(connVars, pgOpts)
 
 	db, err := sql.Open("postgres", psqlInfo)
@@ -94,9 +104,9 @@ func NewAdapter(host string, port string, user string, dbName string, pgOpts ...
 		return nil, err
 	}
 
-	tableName := dbName                                   // Default table name to create to db name
-	if tbName, exists := connVars[tableNameKey]; exists { // If option passed in for table name, use the option instead of default
-		tableName = tbName
+	tableName := dbName           // Default table name to create to db name
+	if connVars.tableName != "" { // If option passed in for table name, use the option instead of default
+		tableName = connVars.tableName
 	}
 
 	adapter := &PgAdapter{conn: db, tableName: tableName}
