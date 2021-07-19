@@ -37,8 +37,8 @@ func (a PgAdapter) createTable(tableName string) error {
 	return nil
 }
 
-// pgOptions describes connection options
-type pgOptions struct {
+// PgOptions describes connection options; exported for use in other packages that need initialization options
+type PgOptions struct {
 	passWord  string
 	tableName string
 	sslMode   string
@@ -49,32 +49,32 @@ type pgOptions struct {
 }
 
 // PgOptionFunc describes functions which add optional connection variables to Postgres
-type PgOptionFunc func(options *pgOptions)
+type PgOptionFunc func(options *PgOptions)
 
 // WithPassword is an optional function to provide a password to connect to the database with; default is empty
 func WithPassword(password string) PgOptionFunc {
-	return func(options *pgOptions) {
+	return func(options *PgOptions) {
 		options.passWord = password
 	}
 }
 
 //WithTableName is an optional function to provide a table name for phone number operations; default is using the database name
 func WithTableName(tableName string) PgOptionFunc {
-	return func(options *pgOptions) {
+	return func(options *PgOptions) {
 		options.tableName = tableName
 	}
 }
 
 // WithSslOn is an optional function to make ssl enabled; default is disabled
 func WithSslOn() PgOptionFunc {
-	return func(options *pgOptions) {
+	return func(options *PgOptions) {
 		options.sslMode = "enable"
 	}
 }
 
 // applyOpts iterates over the options provided, adds them to the connection variables map, and returns the connection options
 // in string format as optKey=optValue
-func applyOpts(connVars *pgOptions, pgOpts []PgOptionFunc) string {
+func applyOpts(connVars *PgOptions, pgOpts []PgOptionFunc) string {
 	for _, pgOpt := range pgOpts {
 		pgOpt(connVars)
 	}
@@ -91,7 +91,7 @@ func applyOpts(connVars *pgOptions, pgOpts []PgOptionFunc) string {
 
 // NewAdapter instantiates a new postgres PgAdapter
 func NewAdapter(host string, port string, user string, dbName string, pgOpts ...PgOptionFunc) (*PgAdapter, error) {
-	connVars := &pgOptions{host: host, port: port, dbName: dbName, userName: user, sslMode: "disable"}
+	connVars := &PgOptions{host: host, port: port, dbName: dbName, userName: user, sslMode: "disable"}
 	psqlInfo := applyOpts(connVars, pgOpts)
 
 	db, err := sql.Open("postgres", psqlInfo)
