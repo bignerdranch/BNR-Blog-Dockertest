@@ -39,7 +39,7 @@ func (a PgAdapter) createTable(tableName string) error {
 
 // PgOptions describes connection options; exported for use in other packages that need initialization options
 type PgOptions struct {
-	passWord  string
+	password  string
 	tableName string
 	sslMode   string
 	host      string
@@ -54,7 +54,7 @@ type PgOptionFunc func(options *PgOptions)
 // WithPassword is an optional function to provide a password to connect to the database with; default is empty
 func WithPassword(password string) PgOptionFunc {
 	return func(options *PgOptions) {
-		options.passWord = password
+		options.password = password
 	}
 }
 
@@ -82,8 +82,8 @@ func applyOpts(connVars *PgOptions, pgOpts []PgOptionFunc) string {
 	var sb strings.Builder
 	fmt.Fprintf(&sb, "%s=%s %s=%s %s=%s %s=%s %s=%s", hostKey, connVars.host, portKey, connVars.port, dbNameKey,
 		connVars.dbName, userKey, connVars.userName, sslModeKey, connVars.sslMode) // Apply provided options
-	if connVars.passWord != "" { // Add to connection string password if provided
-		fmt.Fprintf(&sb, "%s=%s", passwordKey, connVars.passWord)
+	if connVars.password != "" { // Add to connection string password if provided
+		fmt.Fprintf(&sb, "%s=%s", passwordKey, connVars.password)
 	}
 
 	return sb.String()
