@@ -1,0 +1,10 @@
+([]storage.PhoneNumber) (len=2) {
+  (storage.PhoneNumber) {
+    ID: (int) 1,
+    Number: (string) (len=10) "1234565454"
+  },
+  (storage.PhoneNumber) {
+    ID: (int) 2,
+    Number: (string) (len=10) "4565434343"
+  }
+}
