@@ -15,12 +15,13 @@ import (
 var testPort string
 
 const testUser = "postgres"
+const testPassword = "password"
 const testHost = "localhost"
 const testDbName = "phone_numbers"
 
 // getAdapter retrieves the Postgres adapter with test credentials
 func getAdapter() (*PgAdapter, error) {
-	return NewAdapter(testHost, testPort, testUser, testDbName)
+	return NewAdapter(testHost, testPort, testUser, testDbName, WithPassword(testPassword))
 }
 
 // initTestAdapter inserts test numbers into the database
@@ -49,7 +50,7 @@ func setup() *dockertest.Resource {
 	}
 
 	// Pulls an image, creates a container based on it and runs it
-	resource, err := pool.Run("postgres", "latest", []string{"POSTGRES_HOST_AUTH_METHOD=trust", fmt.Sprintf("POSTGRES_DB=%s", testDbName)})
+	resource, err := pool.Run("postgres", "13", []string{fmt.Sprintf("POSTGRES_PASSWORD=%s", testPassword), fmt.Sprintf("POSTGRES_DB=%s", testDbName)})
 	if err != nil {
 		log.Fatalf("could not start resource: %s", err)
 	}
