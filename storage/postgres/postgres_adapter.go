@@ -65,13 +65,6 @@ func WithTableName(tableName string) PgOptionFunc {
 	}
 }
 
-// WithSslOn is an optional function to make ssl enabled; default is disabled
-func WithSslOn() PgOptionFunc {
-	return func(options *PgOptions) {
-		options.sslMode = "require"
-	}
-}
-
 // applyOpts iterates over the options provided, adds them to the connection variables map, and returns the connection options
 // in string format as optKey=optValue
 func applyOpts(connVars *PgOptions, pgOpts []PgOptionFunc) string {
